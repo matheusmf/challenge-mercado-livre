@@ -10,10 +10,10 @@ import br.com.matheusmf.challenge.domain.repository.UserRepository;
 import br.com.matheusmf.challenge.domain.service.validation.ValidationResult;
 
 public class DomainUserService implements UserService {
-	
+
 	private final UserRepository userRepository;
 	private final UserValidationService userValidationService;
-	
+
 	public DomainUserService(final UserRepository userRepository) {
 		this.userRepository = userRepository;
 		this.userValidationService = new DomainUserValidationService(userRepository);
@@ -21,8 +21,7 @@ public class DomainUserService implements UserService {
 
 	@Override
 	public User findById(String id) {
-		return userRepository.findById(id)
-				.orElseThrow(() -> new DomainException("No records found for this ID!"));
+		return userRepository.findById(id).orElseThrow(() -> new DomainException("No records found for this ID!"));
 	}
 
 	@Override
@@ -42,7 +41,7 @@ public class DomainUserService implements UserService {
 		user.assignCreateData();
 		return userRepository.save(user);
 	}
-	
+
 	@Override
 	public User updateUser(String id, User user) {
 		User existingUser = userRepository.findById(id)
@@ -51,14 +50,21 @@ public class DomainUserService implements UserService {
 		existingUser.setCpf(user.getCpf());
 		existingUser.setEmail(user.getEmail());
 		existingUser.setBirthdate(user.getBirthdate());
-		
+
 		ValidationResult validation = userValidationService.validate(existingUser);
 		if (validation.notValid()) {
 			throw new DomainException(validation.getErrorMsg());
 		}
-		
+
 		existingUser.assignUpdateData();
 		return userRepository.save(existingUser);
+	}
+
+	@Override
+	public void delete(String id) {
+		User existingUser = userRepository.findById(id)
+				.orElseThrow(() -> new DomainException("No records found for this ID!"));
+		userRepository.delete(existingUser);
 	}
 
 }

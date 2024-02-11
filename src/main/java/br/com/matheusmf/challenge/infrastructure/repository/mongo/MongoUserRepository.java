@@ -59,5 +59,10 @@ public class MongoUserRepository implements UserRepository {
 	public User save(User user) {
 		return userRepository.save(user);
 	}
+	
+	@Override
+	public void delete(User user) {
+		userRepository.delete(user);
+	}
 
 }

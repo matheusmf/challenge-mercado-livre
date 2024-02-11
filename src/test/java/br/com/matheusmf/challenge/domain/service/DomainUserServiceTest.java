@@ -7,7 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
@@ -102,7 +104,23 @@ public class DomainUserServiceTest {
 		verify(repository, never()).save(any(User.class));
 	}
 	
-	@DisplayName("JUnit test for Given Existing Cpf when Updated User then throws Exception")
+	@DisplayName("JUnit test for Given Age Under 18 when Create User then throws Exception")
+	@Test
+	void testGivenAgeUnder18_WhenCreateUser_thenThrowsException() {
+
+		// Given / Arrange
+		user.setBirthdate(LocalDate.now());
+
+		// When / Act
+		assertThrows(DomainException.class, () -> {
+			service.createUser(user);
+		});
+
+		// Then / Assert
+		verify(repository, never()).save(any(User.class));
+	}
+	
+	@DisplayName("JUnit test for Given Existing Cpf when Update User then throws Exception")
 	@Test
 	void testGivenExistingCpf_WhenUpdateUser_thenThrowsException() {
 
@@ -172,13 +190,13 @@ public class DomainUserServiceTest {
         assertTrue(updatedUser.getLastUpdatedAt().isAfter(existingUser.getCreatedAt()));
     }
 	
-	@DisplayName("JUnit test for Given Existing Email when Updated User then throws Exception")
+	@DisplayName("JUnit test for Given Existing Email when Update User then throws Exception")
 	@Test
-	void testGivenExistingEmail_WhenUpdatedUser_thenThrowsException() {
+	void testGivenExistingEmail_WhenUpdateUser_thenThrowsException() {
 
 		// Given / Arrange
 		given(repository.findById(anyString())).willReturn(Optional.of(user));
-		given(repository.findByCpf(anyString())).willReturn(Optional.of(user));
+		given(repository.findByEmail(anyString())).willReturn(Optional.of(user));
 
 		// When / Act
 		assertThrows(DomainException.class, () -> {
@@ -207,6 +225,24 @@ public class DomainUserServiceTest {
 		// When / Act
 		assertThrows(DomainException.class, () -> {
 			service.updateUser(UUID.randomUUID().toString(), cpfInvalidUser);
+		});
+
+		// Then / Assert
+		verify(repository, never()).save(any(User.class));
+	}
+	
+	@DisplayName("JUnit test for Given Age Under 18 when Update User then throws Exception")
+	@Test
+	void testGivenAgeUnder18_WhenUpdateUser_thenThrowsException() {
+
+		// Given / Arrange
+		given(repository.findById(anyString())).willReturn(Optional.of(user));
+		
+		user.setBirthdate(LocalDate.now());
+
+		// When / Act
+		assertThrows(DomainException.class, () -> {
+			service.updateUser(UUID.randomUUID().toString(), user);
 		});
 
 		// Then / Assert
@@ -291,5 +327,20 @@ public class DomainUserServiceTest {
         assertEquals(1, result.getNumberOfElements());
         assertEquals("Leandro", result.getContent().get(0).getName());
     }
+	
+	@DisplayName("JUnit test for Given UserId when Delete User then do Nothing")
+    @Test
+    void testGivenUserID_WhenDeleteUser_thenDoNothing() {
+        
+        // Given / Arrange
+        given(repository.findById(anyString())).willReturn(Optional.of(user));
+        willDoNothing().given(repository).delete(user);
+        
+        // When / Act
+        service.delete(UUID.randomUUID().toString());
+        
+        // Then / Assert
+        verify(repository, times(1)).delete(user);
+    }  
 
 }
