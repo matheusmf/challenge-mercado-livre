@@ -4,8 +4,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Document
 public class User {
-	private UUID id;
+	@Id
+	private String id;
 	private String name;
 	private String cpf;
 	private String email;
@@ -23,8 +28,12 @@ public class User {
 		this.lastUpdatedAt = builder.lastUpdatedAt;
 	}
 	
+	public User() {
+		
+	}
+	
 	public void assignCreateData() {
-		this.id = UUID.randomUUID();
+		this.id = UUID.randomUUID().toString();
 		this.createdAt = LocalDateTime.now();
 	}
 	
@@ -32,7 +41,7 @@ public class User {
 		this.lastUpdatedAt = LocalDateTime.now();
 	}
 
-	public UUID getId() {
+	public String getId() {
 		return id;
 	}
 
@@ -60,8 +69,36 @@ public class User {
 		return lastUpdatedAt;
 	}
 
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setCpf(String cpf) {
+		this.cpf = cpf;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public void setBirthdate(LocalDate birthdate) {
+		this.birthdate = birthdate;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public void setLastUpdatedAt(LocalDateTime lastUpdatedAt) {
+		this.lastUpdatedAt = lastUpdatedAt;
+	}
+
 	public static class Builder {
-		private UUID id;
+		private String id;
 		private String name;
 		private String cpf;
 		private String email;
@@ -69,7 +106,7 @@ public class User {
 		private LocalDateTime createdAt;
 		private LocalDateTime lastUpdatedAt;
 		
-		public Builder id(UUID id) {
+		public Builder id(String id) {
 			this.id = id;
 			return this;
 		}

@@ -1,5 +1,7 @@
 package br.com.matheusmf.challenge.domain.service;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.InputMismatchException;
 import java.util.Set;
 
@@ -26,6 +28,7 @@ public class DomainUserValidationService implements UserValidationService {
 				.linkWith(new CpfDuplicationValidationStep(userRepository))
 				.linkWith(new CpfValidValidationStep())
 				.linkWith(new EmailDuplicationValidationStep(userRepository))
+				.linkWith(new BirthdateValidationStep())
 				.validate(user);
 	}
 
@@ -55,7 +58,10 @@ public class DomainUserValidationService implements UserValidationService {
 
 		@Override
 		public ValidationResult validate(User user) {
-			if (userRepository.existsByCpf(user.getCpf())) {
+			if ((user.getId() != null)) {
+				if (userRepository.findByCpfAndIdNot(user.getCpf(), user.getId()).isPresent())
+					return ValidationResult.invalid(String.format("CPF [%s] already exists", user.getCpf()));
+			} else if (userRepository.findByCpf(user.getCpf()).isPresent()) {
 				return ValidationResult.invalid(String.format("CPF [%s] already exists", user.getCpf()));
 			}
 			return checkNext(user);
@@ -127,11 +133,29 @@ public class DomainUserValidationService implements UserValidationService {
 
 		@Override
 		public ValidationResult validate(User user) {
-			if (userRepository.existsByEmail(user.getEmail())) {
+			
+			
+			if ((user.getId() != null)) {
+				if (userRepository.findByEmailAndIdNot(user.getEmail(), user.getId()).isPresent())
+					return ValidationResult.invalid(String.format("Email [%s] already exists", user.getCpf()));
+			} else if (userRepository.findByEmail(user.getEmail()).isPresent()) {
 				return ValidationResult.invalid(String.format("Email [%s] is already taken", user.getEmail()));
 			}
 			return checkNext(user);
 		}
+	}
+	
+	private static class BirthdateValidationStep extends ValidationStep<User> {
+
+		@Override
+		public ValidationResult validate(User user) {
+			int age = Period.between(user.getBirthdate(), LocalDate.now()).getYears();
+			if (age < 18) {
+				return ValidationResult.invalid("Only users over 18 years old are allowed");
+			}
+			return checkNext(user);
+		}
+		
 	}
 
 }

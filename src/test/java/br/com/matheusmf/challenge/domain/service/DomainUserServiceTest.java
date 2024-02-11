@@ -58,8 +58,6 @@ public class DomainUserServiceTest {
     void testGivenUserObject_WhenCreateUser_thenReturnUserObject() {
         
         // Given / Arrange
-        given(repository.existsByCpf(anyString())).willReturn(false);
-        given(repository.existsByEmail(anyString())).willReturn(false);
         given(repository.save(user)).willReturn(user);
         
         // When / Act
@@ -77,7 +75,7 @@ public class DomainUserServiceTest {
 	void testGivenExistingCpf_WhenCreateUser_thenThrowsException() {
 
 		// Given / Arrange
-		given(repository.existsByEmail(anyString())).willReturn(true);
+		given(repository.findByEmail(anyString())).willReturn(Optional.of(user));
 
 		// When / Act
 		assertThrows(DomainException.class, () -> {
@@ -93,7 +91,7 @@ public class DomainUserServiceTest {
 	void testGivenExistingEmail_WhenCreateUser_thenThrowsException() {
 
 		// Given / Arrange
-		given(repository.existsByCpf(anyString())).willReturn(true);
+		given(repository.findByCpf(anyString())).willReturn(Optional.of(user));
 
 		// When / Act
 		assertThrows(DomainException.class, () -> {
@@ -109,11 +107,12 @@ public class DomainUserServiceTest {
 	void testGivenExistingCpf_WhenUpdateUser_thenThrowsException() {
 
 		// Given / Arrange
-		given(repository.existsByEmail(anyString())).willReturn(true);
+		given(repository.findById(anyString())).willReturn(Optional.of(user));
+		given(repository.findByEmail(anyString())).willReturn(Optional.of(user));
 
 		// When / Act
 		assertThrows(DomainException.class, () -> {
-			service.updateUser(user);
+			service.updateUser(UUID.randomUUID().toString(), user);
 		});
 
 		// Then / Assert
@@ -132,7 +131,7 @@ public class DomainUserServiceTest {
 					.birthdate(LocalDate.of(1989, 6, 3)));
 
 		// Given / Arrange
-		given(repository.existsByCpf(anyString())).willReturn(false);
+		given(repository.findByCpf(anyString())).willReturn(Optional.empty());
 
 		// When / Act
 		assertThrows(DomainException.class, () -> {
@@ -147,9 +146,9 @@ public class DomainUserServiceTest {
     @Test
     void testGivenUserObject_WhenUpdateUser_thenReturnUserObject() {
 		
+		String id = UUID.randomUUID().toString();
 		User existingUser = new User(
 				new User.Builder()
-					.id(UUID.randomUUID())
 					.name("Leandro")
 					.cpf("54447091046")
 					.email("leandro@mercadolivre.com")
@@ -157,16 +156,18 @@ public class DomainUserServiceTest {
 					.createdAt(LocalDateTime.now()));
         
         // Given / Arrange
-        given(repository.existsByCpf(anyString())).willReturn(false);
-        given(repository.existsByEmail(anyString())).willReturn(false);
+		given(repository.findById(id)).willReturn(Optional.of(existingUser));
+        given(repository.findByCpf(anyString())).willReturn(Optional.empty());
+        given(repository.findByEmail(anyString())).willReturn(Optional.empty());
         given(repository.save(existingUser)).willReturn(existingUser);
         
+        existingUser.setName("Leonardo");
         // When / Act
-        User updatedUser = service.updateUser(existingUser);
+        User updatedUser = service.updateUser(id, existingUser);
         
         // Then / Assert
         assertNotNull(updatedUser);
-        assertEquals("Leandro", updatedUser.getName());
+        assertEquals("Leonardo", updatedUser.getName());
         assertNotNull(updatedUser.getLastUpdatedAt());
         assertTrue(updatedUser.getLastUpdatedAt().isAfter(existingUser.getCreatedAt()));
     }
@@ -176,11 +177,12 @@ public class DomainUserServiceTest {
 	void testGivenExistingEmail_WhenUpdatedUser_thenThrowsException() {
 
 		// Given / Arrange
-		given(repository.existsByCpf(anyString())).willReturn(true);
+		given(repository.findById(anyString())).willReturn(Optional.of(user));
+		given(repository.findByCpf(anyString())).willReturn(Optional.of(user));
 
 		// When / Act
 		assertThrows(DomainException.class, () -> {
-			service.updateUser(user);
+			service.updateUser(UUID.randomUUID().toString(), user);
 		});
 
 		// Then / Assert
@@ -199,11 +201,12 @@ public class DomainUserServiceTest {
 					.birthdate(LocalDate.of(1989, 6, 3)));
 
 		// Given / Arrange
-		given(repository.existsByCpf(anyString())).willReturn(false);
+		given(repository.findById(anyString())).willReturn(Optional.of(cpfInvalidUser));
+		given(repository.findByCpf(anyString())).willReturn(Optional.empty());
 
 		// When / Act
 		assertThrows(DomainException.class, () -> {
-			service.updateUser(cpfInvalidUser);
+			service.updateUser(UUID.randomUUID().toString(), cpfInvalidUser);
 		});
 
 		// Then / Assert
@@ -218,11 +221,11 @@ public class DomainUserServiceTest {
         given(repository.findById(any())).willReturn(Optional.of(user));
         
         // When / Act
-        Optional<User> savedUser = service.findById(UUID.randomUUID());
+        User savedUser = service.findById(UUID.randomUUID().toString());
         
         // Then / Assert
         assertNotNull(savedUser);
-        assertEquals("Matheus", savedUser.get().getName());
+        assertEquals("Matheus", savedUser.getName());
     }
 	
 	@DisplayName("JUnit test for Given Empty Name when find then Return All User Objects")
@@ -231,7 +234,7 @@ public class DomainUserServiceTest {
 		
 		User user1 = new User(
 				new User.Builder()
-					.id(UUID.randomUUID())
+					.id(UUID.randomUUID().toString())
 					.name("Leandro")
 					.cpf("54447091046")
 					.email("leandro@mercadolivre.com")
@@ -240,7 +243,7 @@ public class DomainUserServiceTest {
 		
 		User user2 = new User(
 				new User.Builder()
-					.id(UUID.randomUUID())
+					.id(UUID.randomUUID().toString())
 					.name("Leonardo")
 					.cpf("35774128016")
 					.email("leandro@mercadolivre.com")
@@ -268,7 +271,7 @@ public class DomainUserServiceTest {
 		
 		User user1 = new User(
 				new User.Builder()
-					.id(UUID.randomUUID())
+					.id(UUID.randomUUID().toString())
 					.name("Leandro")
 					.cpf("54447091046")
 					.email("leandro@mercadolivre.com")

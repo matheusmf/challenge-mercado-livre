@@ -1,7 +1,6 @@
 package br.com.matheusmf.challenge.infrastructure.repository.mongo;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,7 +21,7 @@ public class MongoUserRepository implements UserRepository {
 	}
 
 	@Override
-	public Optional<User> findById(UUID id) {
+	public Optional<User> findById(String id) {
 		return userRepository.findById(id);
 	}
 
@@ -37,13 +36,23 @@ public class MongoUserRepository implements UserRepository {
 	}
 	
 	@Override
-	public boolean existsByCpf(String cpf) {
-		return userRepository.existsByCpf(cpf);
+	public Optional<User> findByCpf(String cpf) {
+		return userRepository.findByCpf(cpf);
+	}
+	
+	@Override
+	public Optional<User> findByCpfAndIdNot(String cpf, String id) {
+		return userRepository.findByCpfAndIdNot(cpf, id);
 	}
 
 	@Override
-	public boolean existsByEmail(String email) {
-		return existsByEmail(email);
+	public Optional<User> findByEmail(String email) {
+		return userRepository.findByEmail(email);
+	}
+	
+	@Override
+	public Optional<User> findByEmailAndIdNot(String email, String id) {
+		return userRepository.findByEmailAndIdNot(email, id);
 	}
 
 	@Override
