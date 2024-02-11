@@ -1,4 +1,4 @@
-package br.com.matheusmf.challenge.domain.application.rest;
+package br.com.matheusmf.challenge.application.request;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.matheusmf.challenge.application.rest.UserRequest;
 import br.com.matheusmf.challenge.domain.DomainException;
 import br.com.matheusmf.challenge.domain.User;
-import br.com.matheusmf.challenge.domain.application.request.UserRequest;
 import br.com.matheusmf.challenge.domain.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

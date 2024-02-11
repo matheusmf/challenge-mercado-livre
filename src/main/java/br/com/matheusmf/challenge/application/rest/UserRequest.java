@@ -1,4 +1,4 @@
-package br.com.matheusmf.challenge.domain.application.request;
+package br.com.matheusmf.challenge.application.rest;
 
 import java.time.LocalDate;
 
