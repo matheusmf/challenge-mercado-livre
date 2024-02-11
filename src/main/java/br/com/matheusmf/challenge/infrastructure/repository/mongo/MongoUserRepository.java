@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import br.com.matheusmf.challenge.domain.User;
@@ -26,8 +27,13 @@ public class MongoUserRepository implements UserRepository {
 	}
 
 	@Override
-	public Page<User> findByName(String name) {
-		return userRepository.findByName(name);
+	public Page<User> findByName(String name, Pageable pageable) {
+		return userRepository.findByName(name, pageable);
+	}
+	
+	@Override
+	public Page<User> findAll(Pageable pageable) {
+		return userRepository.findAll(pageable);
 	}
 	
 	@Override
@@ -44,7 +50,5 @@ public class MongoUserRepository implements UserRepository {
 	public User save(User user) {
 		return userRepository.save(user);
 	}
-
-	
 
 }

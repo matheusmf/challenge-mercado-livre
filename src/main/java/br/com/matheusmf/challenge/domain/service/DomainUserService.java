@@ -4,6 +4,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.util.StringUtils;
 
 import br.com.matheusmf.challenge.domain.DomainException;
 import br.com.matheusmf.challenge.domain.User;
@@ -26,8 +28,11 @@ public class DomainUserService implements UserService {
 	}
 
 	@Override
-	public Page<User> find(String name) {
-		return userRepository.findByName(name);
+	public Page<User> find(String name, Pageable pageable) {
+		if (StringUtils.hasText(name)) {
+			return userRepository.findByName(name, pageable);
+		}
+		return userRepository.findAll(pageable);
 	}
 
 	@Override
