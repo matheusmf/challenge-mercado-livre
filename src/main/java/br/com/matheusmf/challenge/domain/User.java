@@ -94,6 +94,16 @@ public class User {
 			return this;
 		}
 		
+		public Builder createdAt(LocalDateTime createdAt) {
+			this.createdAt = createdAt;
+			return this;
+		}
+		
+		public Builder lastUpdatedAt(LocalDateTime lastUpdatedAt) {
+			this.lastUpdatedAt = lastUpdatedAt;
+			return this;
+		}
+		
 	}
 
 }
