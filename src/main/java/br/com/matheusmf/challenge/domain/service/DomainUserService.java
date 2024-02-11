@@ -5,15 +5,19 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 
+import br.com.matheusmf.challenge.domain.DomainException;
 import br.com.matheusmf.challenge.domain.User;
 import br.com.matheusmf.challenge.domain.repository.UserRepository;
+import br.com.matheusmf.challenge.domain.service.validation.ValidationResult;
 
 public class DomainUserService implements UserService {
 	
 	private final UserRepository userRepository;
+	private final UserValidationService userValidationService;
 	
 	public DomainUserService(final UserRepository userRepository) {
 		this.userRepository = userRepository;
+		this.userValidationService = new DomainUserValidationService(userRepository);
 	}
 
 	@Override
@@ -23,14 +27,27 @@ public class DomainUserService implements UserService {
 
 	@Override
 	public Page<User> find(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		return userRepository.findByName(name);
 	}
 
 	@Override
-	public User saveUser(User user) {
-		// TODO Auto-generated method stub
-		return null;
+	public User createUser(User user) {
+		ValidationResult validation = userValidationService.validate(user);
+		if (validation.notValid()) {
+			throw new DomainException(validation.getErrorMsg());
+		}
+		user.assignCreateData();
+		return userRepository.save(user);
+	}
+	
+	@Override
+	public User updateUser(User user) {
+		ValidationResult validation = userValidationService.validate(user);
+		if (validation.notValid()) {
+			throw new DomainException(validation.getErrorMsg());
+		}
+		user.assignUpdateData();
+		return userRepository.save(user);
 	}
 
 }

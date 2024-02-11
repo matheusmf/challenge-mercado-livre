@@ -29,10 +29,22 @@ public class MongoUserRepository implements UserRepository {
 	public Page<User> findByName(String name) {
 		return userRepository.findByName(name);
 	}
+	
+	@Override
+	public boolean existsByCpf(String cpf) {
+		return userRepository.existsByCpf(cpf);
+	}
+
+	@Override
+	public boolean existsByEmail(String email) {
+		return existsByEmail(email);
+	}
 
 	@Override
 	public User save(User user) {
 		return userRepository.save(user);
 	}
+
+	
 
 }

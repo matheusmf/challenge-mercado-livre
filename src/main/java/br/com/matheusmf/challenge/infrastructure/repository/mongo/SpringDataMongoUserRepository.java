@@ -12,5 +12,9 @@ import br.com.matheusmf.challenge.domain.User;
 public interface SpringDataMongoUserRepository extends MongoRepository<User, UUID> {
 	
 	Page<User> findByName(String name);
+	
+	boolean existsByCpf(String cpf);
+	
+	boolean existsByEmail(String email);
 
 }

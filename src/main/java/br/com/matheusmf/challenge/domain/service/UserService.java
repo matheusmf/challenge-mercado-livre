@@ -12,6 +12,8 @@ public interface UserService {
 	
 	Page<User> find(String name);
 	
-	User saveUser(User user);
+	User createUser(User user);
+	
+	User updateUser(User user);
 
 }

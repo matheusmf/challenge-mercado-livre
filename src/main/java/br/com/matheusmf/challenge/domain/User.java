@@ -22,6 +22,15 @@ public class User {
 		this.createdAt = builder.createdAt;
 		this.lastUpdatedAt = builder.lastUpdatedAt;
 	}
+	
+	public void assignCreateData() {
+		this.id = UUID.randomUUID();
+		this.createdAt = LocalDateTime.now();
+	}
+	
+	public void assignUpdateData() {
+		this.lastUpdatedAt = LocalDateTime.now();
+	}
 
 	public UUID getId() {
 		return id;
@@ -82,16 +91,6 @@ public class User {
 		
 		public Builder birthdate(LocalDate birthdate) {
 			this.birthdate = birthdate;
-			return this;
-		}
-		
-		public Builder createdAt(LocalDateTime createdAt) {
-			this.createdAt = createdAt;
-			return this;
-		}
-		
-		public Builder lastUpdatedAt(LocalDateTime lastUpdatedAt) {
-			this.lastUpdatedAt = lastUpdatedAt;
 			return this;
 		}
 		

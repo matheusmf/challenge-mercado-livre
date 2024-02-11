@@ -1,10 +1,10 @@
-package br.com.matheusmf.demo;
+package br.com.matheusmf.challenge;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class DemoApplicationTests {
+class ChallengeApplicationTests {
 
 	@Test
 	void contextLoads() {

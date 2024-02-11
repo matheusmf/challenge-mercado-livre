@@ -1,0 +1,137 @@
+package br.com.matheusmf.challenge.domain.service;
+
+import java.util.InputMismatchException;
+import java.util.Set;
+
+import br.com.matheusmf.challenge.domain.User;
+import br.com.matheusmf.challenge.domain.repository.UserRepository;
+import br.com.matheusmf.challenge.domain.service.validation.ValidationResult;
+import br.com.matheusmf.challenge.domain.service.validation.ValidationStep;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+
+public class DomainUserValidationService implements UserValidationService {
+
+	private final UserRepository userRepository;
+
+	public DomainUserValidationService(final UserRepository userRepository) {
+		this.userRepository = userRepository;
+	}
+
+	@Override
+	public ValidationResult validate(User user) {
+		return new CommandConstraintsValidationStep()
+				.linkWith(new CpfDuplicationValidationStep(userRepository))
+				.linkWith(new CpfValidValidationStep())
+				.linkWith(new EmailDuplicationValidationStep(userRepository))
+				.validate(user);
+	}
+
+	private static class CommandConstraintsValidationStep extends ValidationStep<User> {
+
+		@Override
+		public ValidationResult validate(User user) {
+			try (ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory()) {
+				final Validator validator = validatorFactory.getValidator();
+				final Set<ConstraintViolation<User>> constraintsViolations = validator.validate(user);
+
+				if (!constraintsViolations.isEmpty()) {
+					return ValidationResult.invalid(constraintsViolations.iterator().next().getMessage());
+				}
+			}
+			return checkNext(user);
+		}
+	}
+
+	private static class CpfDuplicationValidationStep extends ValidationStep<User> {
+
+		private final UserRepository userRepository;
+
+		public CpfDuplicationValidationStep(final UserRepository userRepository) {
+			this.userRepository = userRepository;
+		}
+
+		@Override
+		public ValidationResult validate(User user) {
+			if (userRepository.existsByCpf(user.getCpf())) {
+				return ValidationResult.invalid(String.format("CPF [%s] already exists", user.getCpf()));
+			}
+			return checkNext(user);
+		}
+	}
+
+	private static class CpfValidValidationStep extends ValidationStep<User> {
+		@Override
+		public ValidationResult validate(User user) {
+			if (!isCpf(user.getCpf())) {
+				return ValidationResult.invalid(String.format("CPF [%s] is invalid", user.getCpf()));
+			}
+			return checkNext(user);
+		}
+
+		private boolean isCpf(String cpf) {
+			if (cpf == null)
+				return false;
+
+			if (cpf.equals("00000000000") || cpf.equals("11111111111") || cpf.equals("22222222222")
+					|| cpf.equals("33333333333") || cpf.equals("44444444444") || cpf.equals("55555555555")
+					|| cpf.equals("66666666666") || cpf.equals("77777777777") || cpf.equals("88888888888")
+					|| cpf.equals("99999999999") || (cpf.length() != 11))
+				return (false);
+			char dig10, dig11;
+			int sm, i, r, num, peso;
+			try {
+				sm = 0;
+				peso = 10;
+				for (i = 0; i < 9; i++) {
+					num = (int) (cpf.charAt(i) - 48);
+					sm = sm + (num * peso);
+					peso = peso - 1;
+				}
+				r = 11 - (sm % 11);
+				if ((r == 10) || (r == 11))
+					dig10 = '0';
+				else
+					dig10 = (char) (r + 48);
+				sm = 0;
+				peso = 11;
+				for (i = 0; i < 10; i++) {
+					num = (int) (cpf.charAt(i) - 48);
+					sm = sm + (num * peso);
+					peso = peso - 1;
+				}
+				r = 11 - (sm % 11);
+				if ((r == 10) || (r == 11))
+					dig11 = '0';
+				else
+					dig11 = (char) (r + 48);
+				if ((dig10 == cpf.charAt(9)) && (dig11 == cpf.charAt(10)))
+					return (true);
+				else
+					return (false);
+			} catch (InputMismatchException erro) {
+				return (false);
+			}
+		}
+	}
+
+	private static class EmailDuplicationValidationStep extends ValidationStep<User> {
+
+		private final UserRepository userRepository;
+
+		public EmailDuplicationValidationStep(final UserRepository userRepository) {
+			this.userRepository = userRepository;
+		}
+
+		@Override
+		public ValidationResult validate(User user) {
+			if (userRepository.existsByEmail(user.getEmail())) {
+				return ValidationResult.invalid(String.format("Email [%s] is already taken", user.getEmail()));
+			}
+			return checkNext(user);
+		}
+	}
+
+}

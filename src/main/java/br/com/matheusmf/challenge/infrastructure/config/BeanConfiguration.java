@@ -14,7 +14,7 @@ import br.com.matheusmf.challenge.domain.service.UserService;
 public class BeanConfiguration {
 	
 	@Bean
-	UserService userSerive(final UserRepository userRepository) {
+	UserService userService(final UserRepository userRepository) {
 		return new DomainUserService(userRepository);
 	}
 

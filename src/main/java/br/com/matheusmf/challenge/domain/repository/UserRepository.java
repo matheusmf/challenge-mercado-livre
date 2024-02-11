@@ -13,6 +13,10 @@ public interface UserRepository {
 	
 	Page<User> findByName(String name);
 	
+	boolean existsByCpf(String cpf);
+	
+	boolean existsByEmail(String email);
+	
 	User save(User user);
 
 }
