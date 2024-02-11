@@ -16,6 +16,7 @@ public interface SpringDataMongoUserRepository extends MongoRepository<User, Str
 	@Query("{ 'id': ?0 }")
 	Optional<User> findById(String id);
 	
+	@Query(value = "{'name': {$regex : /?0/, $options: 'i'}}")
 	Page<User> findByName(String name, Pageable pageable);
 	
 	@Query("{ 'cpf': ?0 }")
