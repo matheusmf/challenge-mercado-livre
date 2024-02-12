@@ -1,4 +1,4 @@
-package br.com.matheusmf.challenge.application.rest;
+package br.com.matheusmf.challenge.utils;
 
 import org.springframework.data.domain.Page;
 

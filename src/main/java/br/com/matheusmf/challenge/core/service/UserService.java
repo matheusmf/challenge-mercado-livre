@@ -65,7 +65,7 @@ public class UserService implements UserServicePort {
 			throw new DomainException(validation.getErrorMsg());
 		}
 
-		user.setLastUpdatedAt(LocalDateTime.now());
+		existingUser.setLastUpdatedAt(LocalDateTime.now());
 		return userPersistencePort.save(existingUser);
 	}
 

@@ -1,4 +1,4 @@
-package br.com.matheusmf.challenge.infrastructure.repository.mongo;
+package br.com.matheusmf.challenge.infrastructure.adapter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -18,29 +18,34 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import br.com.matheusmf.challenge.domain.User;
-import br.com.matheusmf.challenge.domain.repository.UserRepository;
+import br.com.matheusmf.challenge.core.domain.User;
+import br.com.matheusmf.challenge.infrastructure.out.springdata.adapter.UserSpringDataAdapter;
+import br.com.matheusmf.challenge.infrastructure.out.springdata.mapper.UserDocumentMapper;
+import br.com.matheusmf.challenge.infrastructure.out.springdata.persistence.document.UserDocument;
+import br.com.matheusmf.challenge.infrastructure.out.springdata.persistence.repository.SpringDataMongoUserRepository;
 
 @SpringJUnitConfig
 @SpringBootTest
-public class MongoUserRepositoryTest {
+public class UserSpringDataAdapterTest {
 	
 	@Autowired
     private SpringDataMongoUserRepository mongoUserRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private UserSpringDataAdapter userSpringDataAdapter;
     
-    private User user0;
+    private UserDocument userDocument0;
     
     @BeforeEach
 	public void setup() {
-		user0 = new User(
-			new User.Builder()
-				.name("Matheus")
-				.cpf("28106132064")
-				.email("matheus@mercadolivre.com")
-				.birthdate(LocalDate.of(1989, 6, 3)));
+        // Given / Arrange
+		userDocument0 = UserDocument.builder()
+						.name("Matheus")
+						.cpf("28106132064")
+						.email("matheus@mercadolivre.com")
+						.birthdate(LocalDate.of(1989, 6, 3))
+						.build();
+		mongoUserRepository.save(userDocument0);
 	}
 
     @AfterEach
@@ -52,12 +57,8 @@ public class MongoUserRepositoryTest {
     @Test
     void testGivenUserId_WhenFindById_thenReturnUserObject() {
         
-        // Given / Arrange
-    	user0.setId(UUID.randomUUID().toString());
-        mongoUserRepository.save(user0);
-        
         // When / Act
-        Optional<User> savedUser = userRepository.findById(user0.getId());
+        Optional<User> savedUser = userSpringDataAdapter.findById(userDocument0.getId());
         
         // Then / Assert
         assertNotNull(savedUser);
@@ -68,12 +69,8 @@ public class MongoUserRepositoryTest {
     @Test
     void testGivenName_WhenFindByName_thenReturnUserObject() {
         
-        // Given / Arrange
-    	user0.setId(UUID.randomUUID().toString());
-        mongoUserRepository.save(user0);
-        
         // When / Act
-        Page<User> pageUser = userRepository.findByName(user0.getName(), PageRequest.ofSize(2));
+        Page<User> pageUser = userSpringDataAdapter.findByName(userDocument0.getName(), PageRequest.ofSize(2));
         
         // Then / Assert
         assertNotNull(pageUser);
@@ -83,22 +80,18 @@ public class MongoUserRepositoryTest {
     @DisplayName("JUnit test for Given Name when findByName then Return User Object")
     @Test
     void testGivenNothing_WhenFindAll_thenReturnAllUserObject() {
-        
-        // Given / Arrange
-    	user0.setId(UUID.randomUUID().toString());
-        mongoUserRepository.save(user0);
-        
-        User user1 = new User(
-    			new User.Builder()
-    			    .id(UUID.randomUUID().toString())
-    				.name("Leonardo")
-    				.cpf("91252573073")
-    				.email("leonardo@mercadolivre.com")
-    				.birthdate(LocalDate.of(1989, 6, 3)));
-        mongoUserRepository.save(user1);
+    	// Given / Arrange
+    	UserDocument userDocument1 = UserDocument.builder()
+									.id(UUID.randomUUID().toString())
+									.name("Leonardo")
+									.cpf("91252573073")
+									.email("leonardo@mercadolivre.com")
+									.birthdate(LocalDate.of(1989, 6, 3))
+									.build();
+        mongoUserRepository.save(userDocument1);
         
         // When / Act
-        Page<User> pageUser = userRepository.findAll(PageRequest.ofSize(10));
+        Page<User> pageUser = userSpringDataAdapter.findAll(PageRequest.ofSize(10));
         
         // Then / Assert
         assertNotNull(pageUser);
@@ -109,12 +102,8 @@ public class MongoUserRepositoryTest {
     @Test
     void testGivenCpf_WhenFindByCpf_thenReturnUserObject() {
         
-        // Given / Arrange
-    	user0.setId(UUID.randomUUID().toString());
-        mongoUserRepository.save(user0);
-        
         // When / Act
-        Optional<User> savedUser = userRepository.findByCpf(user0.getCpf());
+        Optional<User> savedUser = userSpringDataAdapter.findByCpf(userDocument0.getCpf());
         
         // Then / Assert
         assertNotNull(savedUser);
@@ -126,12 +115,8 @@ public class MongoUserRepositoryTest {
     @Test
     void testGivenCpfAndId_WhenFindByCpfAndIdNot_thenReturnUserObject() {
         
-        // Given / Arrange
-    	user0.setId(UUID.randomUUID().toString());
-        mongoUserRepository.save(user0);
-        
         // When / Act
-        Optional<User> savedUser = userRepository.findByCpfAndIdNot(user0.getCpf(), UUID.randomUUID().toString());
+        Optional<User> savedUser = userSpringDataAdapter.findByCpfAndIdNot(userDocument0.getCpf(), UUID.randomUUID().toString());
         
         // Then / Assert
         assertNotNull(savedUser);
@@ -143,12 +128,8 @@ public class MongoUserRepositoryTest {
     @Test
     void testGivenEmail_WhenFindByEmail_thenReturnUserObject() {
         
-        // Given / Arrange
-    	user0.setId(UUID.randomUUID().toString());
-        mongoUserRepository.save(user0);
-        
         // When / Act
-        Optional<User> savedUser = userRepository.findByEmail(user0.getEmail());
+        Optional<User> savedUser = userSpringDataAdapter.findByEmail(userDocument0.getEmail());
         
         // Then / Assert
         assertNotNull(savedUser);
@@ -160,12 +141,8 @@ public class MongoUserRepositoryTest {
     @Test
     void testGivenEmailAndId_WhenFindByEmailAndIdNot_thenReturnUserObject() {
         
-        // Given / Arrange
-    	user0.setId(UUID.randomUUID().toString());
-        mongoUserRepository.save(user0);
-        
         // When / Act
-        Optional<User> savedUser = userRepository.findByEmailAndIdNot(user0.getEmail(), UUID.randomUUID().toString());
+        Optional<User> savedUser = userSpringDataAdapter.findByEmailAndIdNot(userDocument0.getEmail(), UUID.randomUUID().toString());
         
         // Then / Assert
         assertNotNull(savedUser);
@@ -178,28 +155,31 @@ public class MongoUserRepositoryTest {
     void testGivenUserObject_whenSave_thenReturnSavedUser() {
         
         // Given / Arrange
-    	user0.setId(UUID.randomUUID().toString());
+    	UserDocument userDocument2 = UserDocument.builder()
+				.id(UUID.randomUUID().toString())
+				.name("Gabriela")
+				.cpf("88763050099")
+				.email("gabriela@mercadolivre.com")
+				.birthdate(LocalDate.of(1989, 6, 3))
+				.build();
         
         // When / Act
-        User savedUser = userRepository.save(user0);
+        User savedUser = userSpringDataAdapter.save(new UserDocumentMapper().toDomain(userDocument2));
         
         // Then / Assert
         assertNotNull(savedUser);
-        assertEquals(user0.getId(), savedUser.getId());
+        assertNotNull(savedUser.getId());
+        assertEquals("Gabriela", savedUser.getName());
     }
     
     @DisplayName("JUnit test for Given User Object when Delete then Remove User")
     @Test
     void testGivenUserObject_whenDelete_thenRemoveUser() {
         
-        // Given / Arrange
-    	user0.setId(UUID.randomUUID().toString());
-    	userRepository.save(user0);
-        
         // When / Act
-    	userRepository.delete(user0);
+    	userSpringDataAdapter.delete(new UserDocumentMapper().toDomain(userDocument0));
         
-        Optional<User> userOptional = userRepository.findById(user0.getId());
+        Optional<User> userOptional = userSpringDataAdapter.findById(userDocument0.getId());
         
         // Then / Assert
         assertTrue(userOptional.isEmpty());

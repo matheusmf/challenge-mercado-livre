@@ -1,4 +1,4 @@
-package br.com.matheusmf.challenge.application.rest;
+package br.com.matheusmf.challenge.application.port.in.rest;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,8 +25,10 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import br.com.matheusmf.challenge.domain.User;
-import br.com.matheusmf.challenge.infrastructure.repository.mongo.SpringDataMongoUserRepository;
+import br.com.matheusmf.challenge.application.dto.request.UserRequest;
+import br.com.matheusmf.challenge.application.dto.response.UserResponse;
+import br.com.matheusmf.challenge.infrastructure.out.springdata.persistence.repository.SpringDataMongoUserRepository;
+import br.com.matheusmf.challenge.utils.PageModule;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.LogDetail;
 import io.restassured.filter.log.RequestLoggingFilter;
@@ -89,7 +91,7 @@ public class UserControllerIntegrationTest {
                             .body()
                                 .asString();
         
-        User createdUser = objectMapper.readValue(content, User.class);
+        UserResponse createdUser = objectMapper.readValue(content, UserResponse.class);
         
         userId = createdUser.getId();
         
@@ -126,7 +128,7 @@ public class UserControllerIntegrationTest {
                             .body()
                                 .asString();
         
-        User updatedUser = objectMapper.readValue(content, User.class);
+        UserResponse updatedUser = objectMapper.readValue(content, UserResponse.class);
         
         assertNotNull(updatedUser);
         
@@ -157,7 +159,7 @@ public class UserControllerIntegrationTest {
                         .body()
                             .asString();
         
-        User foundUser = objectMapper.readValue(content, User.class);
+        UserResponse foundUser = objectMapper.readValue(content, UserResponse.class);
         
         assertNotNull(foundUser);
         
@@ -201,11 +203,11 @@ public class UserControllerIntegrationTest {
                     .body()
                         .asString();
         
-        Page<User> page = objectMapper.readValue(content, new TypeReference<Page<User>>() {});
+        Page<UserResponse> page = objectMapper.readValue(content, new TypeReference<Page<UserResponse>>() {});
         
         assertEquals(2, page.getNumberOfElements());
         
-        User foundUserOne = page.getContent().get(0);
+        UserResponse foundUserOne = page.getContent().get(0);
         
         assertNotNull(foundUserOne);
         
@@ -217,7 +219,7 @@ public class UserControllerIntegrationTest {
         assertEquals("Matheus Farias", foundUserOne.getName());
         assertEquals("matheusfarias@mercadolivre.com", foundUserOne.getEmail());
         
-        User foundUserTwo = page.getContent().get(1);
+        UserResponse foundUserTwo = page.getContent().get(1);
         
         assertNotNull(foundUserTwo);
         
@@ -245,11 +247,11 @@ public class UserControllerIntegrationTest {
                     .body()
                         .asString();
         
-        Page<User> page = objectMapper.readValue(content, new TypeReference<Page<User>>() {});
+        Page<UserResponse> page = objectMapper.readValue(content, new TypeReference<Page<UserResponse>>() {});
         
         assertEquals(1, page.getNumberOfElements());
         
-        User foundUser = page.getContent().get(0);
+        UserResponse foundUser = page.getContent().get(0);
         
         assertNotNull(foundUser);
         
@@ -283,7 +285,7 @@ public class UserControllerIntegrationTest {
                     .body()
                         .asString();
         
-        Page<User> page = objectMapper.readValue(content, new TypeReference<Page<User>>() {});
+        Page<UserResponse> page = objectMapper.readValue(content, new TypeReference<Page<UserResponse>>() {});
         
         assertEquals(1, page.getNumberOfElements());
     }
