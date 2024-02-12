@@ -1,4 +1,4 @@
-package br.com.matheusmf.challenge.domain.service;
+package br.com.matheusmf.challenge.core.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -30,29 +30,33 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import br.com.matheusmf.challenge.domain.DomainException;
-import br.com.matheusmf.challenge.domain.User;
-import br.com.matheusmf.challenge.domain.repository.UserRepository;
+import br.com.matheusmf.challenge.core.domain.DomainException;
+import br.com.matheusmf.challenge.core.domain.User;
+import br.com.matheusmf.challenge.core.port.out.UserPersistencePort;
+import br.com.matheusmf.challenge.core.service.validation.ValidationResult;
 
 @ExtendWith(MockitoExtension.class)
-public class DomainUserServiceTest {
+public class UserServiceTest {
 	
 	@Mock
-	private UserRepository repository;
+	private UserPersistencePort userPersistencePort;
+	
+	@Mock
+	private UserValidationService userValidationService;
 	
 	@InjectMocks
-	private DomainUserService service;
+	private UserService service;
 	
 	private User user;
 	
 	@BeforeEach
 	public void setup() {
-		user = new User(
-			new User.Builder()
+		user = User.builder()
 				.name("Matheus")
 				.cpf("28106132064")
 				.email("matheus@mercadolivre.com")
-				.birthdate(LocalDate.of(1989, 6, 3)));
+				.birthdate(LocalDate.of(1989, 6, 3))
+				.build();
 	}
 	
 	@DisplayName("JUnit test for Given User Object when Create User then Return User Object")
@@ -60,7 +64,8 @@ public class DomainUserServiceTest {
     void testGivenUserObject_WhenCreateUser_thenReturnUserObject() {
         
         // Given / Arrange
-        given(repository.save(user)).willReturn(user);
+		given(userValidationService.validate(user)).willReturn(new ValidationResult(true, null));
+        given(userPersistencePort.save(user)).willReturn(user);
         
         // When / Act
         User createdUser = service.createUser(user);
@@ -77,7 +82,7 @@ public class DomainUserServiceTest {
 	void testGivenExistingCpf_WhenCreateUser_thenThrowsException() {
 
 		// Given / Arrange
-		given(repository.findByEmail(anyString())).willReturn(Optional.of(user));
+		given(userValidationService.validate(user)).willReturn(new ValidationResult(false, "errorMsg"));
 
 		// When / Act
 		assertThrows(DomainException.class, () -> {
@@ -85,7 +90,7 @@ public class DomainUserServiceTest {
 		});
 
 		// Then / Assert
-		verify(repository, never()).save(any(User.class));
+		verify(userPersistencePort, never()).save(any(User.class));
 	}
 
 	@DisplayName("JUnit test for Given Existing Email when Create User then throws Exception")
@@ -93,7 +98,7 @@ public class DomainUserServiceTest {
 	void testGivenExistingEmail_WhenCreateUser_thenThrowsException() {
 
 		// Given / Arrange
-		given(repository.findByCpf(anyString())).willReturn(Optional.of(user));
+		given(userValidationService.validate(user)).willReturn(new ValidationResult(false, "errorMsg"));
 
 		// When / Act
 		assertThrows(DomainException.class, () -> {
@@ -101,7 +106,7 @@ public class DomainUserServiceTest {
 		});
 
 		// Then / Assert
-		verify(repository, never()).save(any(User.class));
+		verify(userPersistencePort, never()).save(any(User.class));
 	}
 	
 	@DisplayName("JUnit test for Given Age Under 18 when Create User then throws Exception")
@@ -109,6 +114,7 @@ public class DomainUserServiceTest {
 	void testGivenAgeUnder18_WhenCreateUser_thenThrowsException() {
 
 		// Given / Arrange
+		given(userValidationService.validate(user)).willReturn(new ValidationResult(false, "errorMsg"));
 		user.setBirthdate(LocalDate.now());
 
 		// When / Act
@@ -117,7 +123,7 @@ public class DomainUserServiceTest {
 		});
 
 		// Then / Assert
-		verify(repository, never()).save(any(User.class));
+		verify(userPersistencePort, never()).save(any(User.class));
 	}
 	
 	@DisplayName("JUnit test for Given Existing Cpf when Update User then throws Exception")
@@ -125,8 +131,8 @@ public class DomainUserServiceTest {
 	void testGivenExistingCpf_WhenUpdateUser_thenThrowsException() {
 
 		// Given / Arrange
-		given(repository.findById(anyString())).willReturn(Optional.of(user));
-		given(repository.findByEmail(anyString())).willReturn(Optional.of(user));
+		given(userPersistencePort.findById(anyString())).willReturn(Optional.of(user));
+		given(userValidationService.validate(user)).willReturn(new ValidationResult(false, "errorMsg"));
 
 		// When / Act
 		assertThrows(DomainException.class, () -> {
@@ -134,22 +140,22 @@ public class DomainUserServiceTest {
 		});
 
 		// Then / Assert
-		verify(repository, never()).save(any(User.class));
+		verify(userPersistencePort, never()).save(any(User.class));
 	}
 	
 	@DisplayName("JUnit test for Given Invalid Cpf when Create User then throws Exception")
 	@Test
 	void testGivenInvalidCpf_WhenCreateUser_thenThrowsException() {
 		
-		User cpfInvalidUser = new User(
-				new User.Builder()
+		User cpfInvalidUser = User.builder()
 					.name("Marcos")
 					.cpf("00000000000")
 					.email("marcos@mercadolivre.com")
-					.birthdate(LocalDate.of(1989, 6, 3)));
+					.birthdate(LocalDate.of(1989, 6, 3))
+					.build();
 
 		// Given / Arrange
-		given(repository.findByCpf(anyString())).willReturn(Optional.empty());
+		given(userValidationService.validate(cpfInvalidUser)).willReturn(new ValidationResult(false, "errorMsg"));
 
 		// When / Act
 		assertThrows(DomainException.class, () -> {
@@ -157,7 +163,7 @@ public class DomainUserServiceTest {
 		});
 
 		// Then / Assert
-		verify(repository, never()).save(any(User.class));
+		verify(userPersistencePort, never()).save(any(User.class));
 	}
 	
 	@DisplayName("JUnit test for Given User Object when Update User then Return User Object")
@@ -165,19 +171,17 @@ public class DomainUserServiceTest {
     void testGivenUserObject_WhenUpdateUser_thenReturnUserObject() {
 		
 		String id = UUID.randomUUID().toString();
-		User existingUser = new User(
-				new User.Builder()
+		User existingUser = User.builder()
 					.name("Leandro")
 					.cpf("54447091046")
 					.email("leandro@mercadolivre.com")
 					.birthdate(LocalDate.of(1998, 7, 1))
-					.createdAt(LocalDateTime.now()));
+					.createdAt(LocalDateTime.now()).build();
         
         // Given / Arrange
-		given(repository.findById(id)).willReturn(Optional.of(existingUser));
-        given(repository.findByCpf(anyString())).willReturn(Optional.empty());
-        given(repository.findByEmail(anyString())).willReturn(Optional.empty());
-        given(repository.save(existingUser)).willReturn(existingUser);
+		given(userPersistencePort.findById(id)).willReturn(Optional.of(existingUser));
+		given(userValidationService.validate(existingUser)).willReturn(new ValidationResult(true, null));
+        given(userPersistencePort.save(existingUser)).willReturn(existingUser);
         
         existingUser.setName("Leonardo");
         // When / Act
@@ -195,8 +199,8 @@ public class DomainUserServiceTest {
 	void testGivenExistingEmail_WhenUpdateUser_thenThrowsException() {
 
 		// Given / Arrange
-		given(repository.findById(anyString())).willReturn(Optional.of(user));
-		given(repository.findByEmail(anyString())).willReturn(Optional.of(user));
+		given(userPersistencePort.findById(anyString())).willReturn(Optional.of(user));
+		given(userValidationService.validate(user)).willReturn(new ValidationResult(false, "errorMsg"));
 
 		// When / Act
 		assertThrows(DomainException.class, () -> {
@@ -204,23 +208,23 @@ public class DomainUserServiceTest {
 		});
 
 		// Then / Assert
-		verify(repository, never()).save(any(User.class));
+		verify(userPersistencePort, never()).save(any(User.class));
 	}
 	
 	@DisplayName("JUnit test for Given Invalid Cpf when Update User then throws Exception")
 	@Test
 	void testGivenInvalidCpf_WhenUpdateUser_thenThrowsException() {
 		
-		User cpfInvalidUser = new User(
-				new User.Builder()
+		User cpfInvalidUser = User.builder()
 					.name("Marcos")
 					.cpf("00000000000")
 					.email("marcos@mercadolivre.com")
-					.birthdate(LocalDate.of(1989, 6, 3)));
+					.birthdate(LocalDate.of(1989, 6, 3))
+					.build();
 
 		// Given / Arrange
-		given(repository.findById(anyString())).willReturn(Optional.of(cpfInvalidUser));
-		given(repository.findByCpf(anyString())).willReturn(Optional.empty());
+		given(userPersistencePort.findById(anyString())).willReturn(Optional.of(cpfInvalidUser));
+		given(userValidationService.validate(cpfInvalidUser)).willReturn(new ValidationResult(false, "errorMsg"));
 
 		// When / Act
 		assertThrows(DomainException.class, () -> {
@@ -228,7 +232,7 @@ public class DomainUserServiceTest {
 		});
 
 		// Then / Assert
-		verify(repository, never()).save(any(User.class));
+		verify(userPersistencePort, never()).save(any(User.class));
 	}
 	
 	@DisplayName("JUnit test for Given Age Under 18 when Update User then throws Exception")
@@ -236,7 +240,8 @@ public class DomainUserServiceTest {
 	void testGivenAgeUnder18_WhenUpdateUser_thenThrowsException() {
 
 		// Given / Arrange
-		given(repository.findById(anyString())).willReturn(Optional.of(user));
+		given(userPersistencePort.findById(anyString())).willReturn(Optional.of(user));
+		given(userValidationService.validate(user)).willReturn(new ValidationResult(false, "errorMsg"));
 		
 		user.setBirthdate(LocalDate.now());
 
@@ -246,7 +251,7 @@ public class DomainUserServiceTest {
 		});
 
 		// Then / Assert
-		verify(repository, never()).save(any(User.class));
+		verify(userPersistencePort, never()).save(any(User.class));
 	}
 	
 	@DisplayName("JUnit test for Given UserId when findById then Return User Object")
@@ -254,7 +259,7 @@ public class DomainUserServiceTest {
     void testGivenUserId_WhenFindById_thenReturnUserObject() {
         
         // Given / Arrange
-        given(repository.findById(any())).willReturn(Optional.of(user));
+        given(userPersistencePort.findById(any())).willReturn(Optional.of(user));
         
         // When / Act
         User savedUser = service.findById(UUID.randomUUID().toString());
@@ -268,28 +273,28 @@ public class DomainUserServiceTest {
     @Test
     void testGivenEmptyName_WhenFind_thenReturnAllUserObjects() {
 		
-		User user1 = new User(
-				new User.Builder()
+		User user1 = User.builder()
 					.id(UUID.randomUUID().toString())
 					.name("Leandro")
 					.cpf("54447091046")
 					.email("leandro@mercadolivre.com")
 					.birthdate(LocalDate.of(1998, 7, 1))
-					.createdAt(LocalDateTime.now()));
+					.createdAt(LocalDateTime.now())
+					.build();
 		
-		User user2 = new User(
-				new User.Builder()
+		User user2 = User.builder()
 					.id(UUID.randomUUID().toString())
 					.name("Leonardo")
 					.cpf("35774128016")
 					.email("leandro@mercadolivre.com")
 					.birthdate(LocalDate.of(1998, 8, 1))
-					.createdAt(LocalDateTime.now()));
+					.createdAt(LocalDateTime.now())
+					.build();
 		
 		Pageable pageable = PageRequest.ofSize(10);
         
         // Given / Arrange
-        given(repository.findAll(pageable)).willReturn(new PageImpl<>(List.of(user1, user2), pageable, 2));
+        given(userPersistencePort.findAll(pageable)).willReturn(new PageImpl<>(List.of(user1, user2), pageable, 2));
         
         // When / Act
         Page<User> result = service.find(null, pageable);
@@ -305,19 +310,19 @@ public class DomainUserServiceTest {
     @Test
     void testGivenName_WhenFind_thenReturnUserObjectWithName() {
 		
-		User user1 = new User(
-				new User.Builder()
+		User user1 = User.builder()
 					.id(UUID.randomUUID().toString())
 					.name("Leandro")
 					.cpf("54447091046")
 					.email("leandro@mercadolivre.com")
 					.birthdate(LocalDate.of(1998, 7, 1))
-					.createdAt(LocalDateTime.now()));
+					.createdAt(LocalDateTime.now())
+					.build();
 		
 		Pageable pageable = PageRequest.ofSize(10);
         
         // Given / Arrange
-        given(repository.findByName("Leandro", pageable)).willReturn(new PageImpl<>(List.of(user1), pageable, 1));
+        given(userPersistencePort.findByName("Leandro", pageable)).willReturn(new PageImpl<>(List.of(user1), pageable, 1));
         
         // When / Act
         Page<User> result = service.find("Leandro", pageable);
@@ -333,14 +338,14 @@ public class DomainUserServiceTest {
     void testGivenUserID_WhenDeleteUser_thenDoNothing() {
         
         // Given / Arrange
-        given(repository.findById(anyString())).willReturn(Optional.of(user));
-        willDoNothing().given(repository).delete(user);
+        given(userPersistencePort.findById(anyString())).willReturn(Optional.of(user));
+        willDoNothing().given(userPersistencePort).delete(user);
         
         // When / Act
         service.delete(UUID.randomUUID().toString());
         
         // Then / Assert
-        verify(repository, times(1)).delete(user);
+        verify(userPersistencePort, times(1)).delete(user);
     }  
 
 }

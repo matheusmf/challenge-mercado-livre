@@ -14,18 +14,15 @@ import br.com.matheusmf.challenge.core.port.out.UserPersistencePort;
 import br.com.matheusmf.challenge.core.service.validation.ValidationResult;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import lombok.RequiredArgsConstructor;
 
 @Singleton
+@RequiredArgsConstructor
 @Named("userService")
 public class UserService implements UserServicePort {
 
 	private final UserPersistencePort userPersistencePort;
 	private final UserValidationService userValidationService;
-
-	public UserService(final UserPersistencePort userPersistencePort) {
-		this.userPersistencePort = userPersistencePort;
-		this.userValidationService = new DomainUserValidationService(userPersistencePort);
-	}
 
 	@Override
 	public User findById(String id) {

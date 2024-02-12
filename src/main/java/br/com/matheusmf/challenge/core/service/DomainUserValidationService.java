@@ -9,18 +9,20 @@ import br.com.matheusmf.challenge.core.domain.User;
 import br.com.matheusmf.challenge.core.port.out.UserPersistencePort;
 import br.com.matheusmf.challenge.core.service.validation.ValidationResult;
 import br.com.matheusmf.challenge.core.service.validation.ValidationStep;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import lombok.RequiredArgsConstructor;
 
+@Singleton
+@RequiredArgsConstructor
+@Named("domainUserValidationService")
 public class DomainUserValidationService implements UserValidationService {
 
 	private final UserPersistencePort userPersistencePort;
-
-	public DomainUserValidationService(final UserPersistencePort userPersistencePort) {
-		this.userPersistencePort = userPersistencePort;
-	}
 
 	@Override
 	public ValidationResult validate(User user) {
@@ -137,7 +139,7 @@ public class DomainUserValidationService implements UserValidationService {
 			
 			if ((user.getId() != null)) {
 				if (userPersistencePort.findByEmailAndIdNot(user.getEmail(), user.getId()).isPresent())
-					return ValidationResult.invalid(String.format("Email [%s] already exists", user.getCpf()));
+					return ValidationResult.invalid(String.format("Email [%s] is already taken", user.getEmail()));
 			} else if (userPersistencePort.findByEmail(user.getEmail()).isPresent()) {
 				return ValidationResult.invalid(String.format("Email [%s] is already taken", user.getEmail()));
 			}
