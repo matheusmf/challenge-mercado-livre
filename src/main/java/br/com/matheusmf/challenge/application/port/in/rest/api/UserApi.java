@@ -1,6 +1,5 @@
-package br.com.matheusmf.challenge.application.request;
+package br.com.matheusmf.challenge.application.port.in.rest.api;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
@@ -11,28 +10,15 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
-import br.com.matheusmf.challenge.application.rest.UserRequest;
-import br.com.matheusmf.challenge.domain.DomainException;
-import br.com.matheusmf.challenge.domain.User;
-import br.com.matheusmf.challenge.domain.service.UserService;
+import br.com.matheusmf.challenge.application.dto.request.UserRequest;
+import br.com.matheusmf.challenge.application.dto.response.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
-@RestController
-@RequestMapping("/users")
-public class UserController {
-	
-	private final UserService service;
-	
-	@Autowired
-	public UserController(UserService service) {
-		this.service = service;
-	}
+public interface UserApi {
 	
 	@Operation(summary = "Busca um usuário por id", description = "Retorna um usuário por id")
 	@ApiResponses(value = {
@@ -41,13 +27,7 @@ public class UserController {
 	})
 	@GetMapping(value = "/{id}",
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<User> findById(@PathVariable(value = "id") String id) {
-		try {
-			return ResponseEntity.ok(service.findById(id));
-        } catch (DomainException e) {
-            return ResponseEntity.notFound().build();
-        }
-	}
+	ResponseEntity<UserResponse> findById(@PathVariable(value = "id") String id);
 	
 	@Operation(summary = "Cria um novo usuário", description = "Cria um novo usuário com os dados enviados no corpo requisição")
 	@ApiResponses(value = {
@@ -56,13 +36,7 @@ public class UserController {
 	})
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<?> create(@RequestBody UserRequest userRequest) {
-		try {
-			return ResponseEntity.ok(service.createUser(userRequest.toUser()));
-        } catch (DomainException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-	}
+	ResponseEntity<?> create(@RequestBody UserRequest userRequest);
 	
 	@Operation(summary = "Atualiza um usuário", description = "Atualiza um usuário com os dados enviados no corpo requisição")
 	@ApiResponses(value = {
@@ -72,13 +46,7 @@ public class UserController {
 	})
 	@PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<?> update(@PathVariable(value = "id") String id, @RequestBody UserRequest userRequest) {
-		try {
-			return ResponseEntity.ok(service.updateUser(id, userRequest.toUser()));
-        } catch (DomainException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-	}
+	ResponseEntity<?> update(@PathVariable(value = "id") String id, @RequestBody UserRequest userRequest);
 	
 	@Operation(summary = "Apaga um usuário", description = "Apaga um usuário através do id")
 	@ApiResponses(value = {
@@ -87,22 +55,13 @@ public class UserController {
 	})
 	@DeleteMapping(value = "/{id}",
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<?> delete(@PathVariable(value = "id") String id) {
-		try {
-			service.delete(id);
-		} catch (DomainException e) {
-			return ResponseEntity.notFound().build();
-		}
-		return ResponseEntity.noContent().build();
-	}
+	ResponseEntity<?> delete(@PathVariable(value = "id") String id);
 	
 	@Operation(summary = "Busca todos os usuários podendo filtrar por nome", description = "Retorna uma lista de usuários")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "Retorna uma lista de usuários")
 	})
 	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Page<User>> find(@RequestParam(value = "name", required = false) String name, Pageable pageable) {
-		return ResponseEntity.ok(service.find(name, pageable));
-	}
+	ResponseEntity<Page<UserResponse>> find(@RequestParam(value = "name", required = false) String name, Pageable pageable);
 
 }

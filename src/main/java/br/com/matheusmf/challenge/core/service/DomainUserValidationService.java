@@ -1,14 +1,14 @@
-package br.com.matheusmf.challenge.domain.service;
+package br.com.matheusmf.challenge.core.service;
 
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.InputMismatchException;
 import java.util.Set;
 
-import br.com.matheusmf.challenge.domain.User;
-import br.com.matheusmf.challenge.domain.repository.UserRepository;
-import br.com.matheusmf.challenge.domain.service.validation.ValidationResult;
-import br.com.matheusmf.challenge.domain.service.validation.ValidationStep;
+import br.com.matheusmf.challenge.core.domain.User;
+import br.com.matheusmf.challenge.core.port.out.UserPersistencePort;
+import br.com.matheusmf.challenge.core.service.validation.ValidationResult;
+import br.com.matheusmf.challenge.core.service.validation.ValidationStep;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -16,18 +16,18 @@ import jakarta.validation.ValidatorFactory;
 
 public class DomainUserValidationService implements UserValidationService {
 
-	private final UserRepository userRepository;
+	private final UserPersistencePort userPersistencePort;
 
-	public DomainUserValidationService(final UserRepository userRepository) {
-		this.userRepository = userRepository;
+	public DomainUserValidationService(final UserPersistencePort userPersistencePort) {
+		this.userPersistencePort = userPersistencePort;
 	}
 
 	@Override
 	public ValidationResult validate(User user) {
 		return new CommandConstraintsValidationStep()
-				.linkWith(new CpfDuplicationValidationStep(userRepository))
+				.linkWith(new CpfDuplicationValidationStep(userPersistencePort))
 				.linkWith(new CpfValidValidationStep())
-				.linkWith(new EmailDuplicationValidationStep(userRepository))
+				.linkWith(new EmailDuplicationValidationStep(userPersistencePort))
 				.linkWith(new BirthdateValidationStep())
 				.validate(user);
 	}
@@ -50,18 +50,18 @@ public class DomainUserValidationService implements UserValidationService {
 
 	private static class CpfDuplicationValidationStep extends ValidationStep<User> {
 
-		private final UserRepository userRepository;
+		private final UserPersistencePort userPersistencePort;
 
-		public CpfDuplicationValidationStep(final UserRepository userRepository) {
-			this.userRepository = userRepository;
+		public CpfDuplicationValidationStep(final UserPersistencePort userPersistencePort) {
+			this.userPersistencePort = userPersistencePort;
 		}
 
 		@Override
 		public ValidationResult validate(User user) {
 			if ((user.getId() != null)) {
-				if (userRepository.findByCpfAndIdNot(user.getCpf(), user.getId()).isPresent())
+				if (userPersistencePort.findByCpfAndIdNot(user.getCpf(), user.getId()).isPresent())
 					return ValidationResult.invalid(String.format("CPF [%s] already exists", user.getCpf()));
-			} else if (userRepository.findByCpf(user.getCpf()).isPresent()) {
+			} else if (userPersistencePort.findByCpf(user.getCpf()).isPresent()) {
 				return ValidationResult.invalid(String.format("CPF [%s] already exists", user.getCpf()));
 			}
 			return checkNext(user);
@@ -125,10 +125,10 @@ public class DomainUserValidationService implements UserValidationService {
 
 	private static class EmailDuplicationValidationStep extends ValidationStep<User> {
 
-		private final UserRepository userRepository;
+		private final UserPersistencePort userPersistencePort;
 
-		public EmailDuplicationValidationStep(final UserRepository userRepository) {
-			this.userRepository = userRepository;
+		public EmailDuplicationValidationStep(final UserPersistencePort userPersistencePort) {
+			this.userPersistencePort = userPersistencePort;
 		}
 
 		@Override
@@ -136,9 +136,9 @@ public class DomainUserValidationService implements UserValidationService {
 			
 			
 			if ((user.getId() != null)) {
-				if (userRepository.findByEmailAndIdNot(user.getEmail(), user.getId()).isPresent())
+				if (userPersistencePort.findByEmailAndIdNot(user.getEmail(), user.getId()).isPresent())
 					return ValidationResult.invalid(String.format("Email [%s] already exists", user.getCpf()));
-			} else if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+			} else if (userPersistencePort.findByEmail(user.getEmail()).isPresent()) {
 				return ValidationResult.invalid(String.format("Email [%s] is already taken", user.getEmail()));
 			}
 			return checkNext(user);

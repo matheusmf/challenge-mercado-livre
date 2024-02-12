@@ -1,11 +1,11 @@
-package br.com.matheusmf.challenge.domain.service;
+package br.com.matheusmf.challenge.core.port.in;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import br.com.matheusmf.challenge.domain.User;
+import br.com.matheusmf.challenge.core.domain.User;
 
-public interface UserService {
+public interface UserServicePort {
 	User findById(String id);
 	
 	Page<User> find(String name, Pageable pageable);

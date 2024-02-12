@@ -1,4 +1,4 @@
-package br.com.matheusmf.challenge.domain.service.validation;
+package br.com.matheusmf.challenge.core.service.validation;
 
 public class ValidationResult {
     private final boolean isValid;

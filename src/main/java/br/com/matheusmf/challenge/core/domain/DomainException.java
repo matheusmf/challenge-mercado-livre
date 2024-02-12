@@ -1,4 +1,4 @@
-package br.com.matheusmf.challenge.domain;
+package br.com.matheusmf.challenge.core.domain;
 
 public class DomainException extends RuntimeException {
 
