@@ -32,6 +32,7 @@ import org.springframework.data.domain.Pageable;
 
 import br.com.matheusmf.challenge.core.domain.DomainException;
 import br.com.matheusmf.challenge.core.domain.User;
+import br.com.matheusmf.challenge.core.port.out.KafkaProducerPort;
 import br.com.matheusmf.challenge.core.port.out.UserPersistencePort;
 import br.com.matheusmf.challenge.core.service.validation.ValidationResult;
 
@@ -43,6 +44,9 @@ public class UserServiceTest {
 	
 	@Mock
 	private UserValidationService userValidationService;
+	
+	@Mock
+	private KafkaProducerPort kafkaProducerPort;
 	
 	@InjectMocks
 	private UserService service;
@@ -66,6 +70,7 @@ public class UserServiceTest {
         // Given / Arrange
 		given(userValidationService.validate(user)).willReturn(new ValidationResult(true, null));
         given(userPersistencePort.save(user)).willReturn(user);
+        willDoNothing().given(kafkaProducerPort).sendToNewUserTopic(anyString());
         
         // When / Act
         User createdUser = service.createUser(user);

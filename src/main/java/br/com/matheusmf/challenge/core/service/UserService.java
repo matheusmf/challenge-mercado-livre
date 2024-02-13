@@ -10,6 +10,7 @@ import org.springframework.util.StringUtils;
 import br.com.matheusmf.challenge.core.domain.DomainException;
 import br.com.matheusmf.challenge.core.domain.User;
 import br.com.matheusmf.challenge.core.port.in.UserServicePort;
+import br.com.matheusmf.challenge.core.port.out.KafkaProducerPort;
 import br.com.matheusmf.challenge.core.port.out.UserPersistencePort;
 import br.com.matheusmf.challenge.core.service.validation.ValidationResult;
 import jakarta.inject.Named;
@@ -23,6 +24,7 @@ public class UserService implements UserServicePort {
 
 	private final UserPersistencePort userPersistencePort;
 	private final UserValidationService userValidationService;
+	private final KafkaProducerPort kafkaProducerPort;
 
 	@Override
 	public User findById(String id) {
@@ -45,7 +47,9 @@ public class UserService implements UserServicePort {
 		}
 		user.setId(UUID.randomUUID().toString());
 		user.setCreatedAt(LocalDateTime.now());
-		return userPersistencePort.save(user);
+		user = userPersistencePort.save(user);
+		kafkaProducerPort.sendToNewUserTopic(user.getId());
+		return user;
 	}
 
 	@Override
