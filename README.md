@@ -21,11 +21,13 @@ Sendo que as regras a seguir precisam ser atendidas.
 
 Para implementação do projeto foi escolhida a Arquitetura Hexagonal, por se tratar de um padrão que reduz o acomplamento entre as diferentes camadas, criando um isolamento do domínio o que leva a uma maior testabilidade.
 
-Também foram utilizados dois padrões de projeto na implementação.
+Alguns padrões de projeto foram utilizados na implementação do teste.
 
-O padrão de projeto Builder foi utilizado para facilitar a criação de objetos, necessário para trafegar os dados entre as camadas da arquitetura.
+Foi utilizado o padrão Singleton para controlar algumas injeções de dependência. Fazendo com que um objeto esteja disponível de forma global no projeto com uma única instância.
 
-Já o padrão de projeto Chain of Responsibility foi utilizado para realizar as validações das regras 2, 3 e 4.
+Também foi utilizado o padrão de projeto Builder com auxílio do Lombok para facilitar a criação de objetos, necessário para trafegar os dados entre as camadas da arquitetura.
+
+E também foi utilizado o padrão de projeto Chain of Responsibility para realizar as validações das regras 2, 3 e 4. Estas validações foram implementadas na classe DomainUserValidationService, onde é realizada uma validação e em seguida é passada para a próxima validação caso não tenha problemas na primeira validação.
 
 ## Persitência de Dados
 
@@ -44,6 +46,14 @@ A API possui 5 endpoints que estão listados a seguir:
 - DELETE /users/{id} (Apaga um usuário por ID)
 - PATCH /users/{id} (Atualiza dados de um usuário)
 
+## Mensageria
+
+No endpoint de criação de usuários foi incluído uma integração de mensageria via o Apache Kafka. Onde após criar um usuário é enviado uma mensagem com o id deste usuário para o tópico 'new-user'. A própria aplicação consome a mensagem do tópico e cria um registro de Email contento o e-mail do usuário cadastrado e uma mensagem de boas vindas.
+
+A implementação do envio da mensagem ao tópico e do consumo da mensagem estão implementadas nas seguintes classes respectivamente:
+- NewUserProducer
+- NewUserConsumer
+
 ## Testes
 
 Foram implementados os testes unitários do service dos usuários, do service de validação dos usuários e do repository dos usuários, respectivamente nas seguintes classes:
@@ -51,5 +61,10 @@ Foram implementados os testes unitários do service dos usuários, do service de
 - UserValidationServiceTest
 - UserSpringDataAdapterTest
 
-Também foi implementado um teste integrado da API de usuários que está disponível na classe:
+Também foram implementados os testes unitários do service dos e-mais e do repositório dos e-mails nas classes a seguir:
+- EmailServiceTest
+- EmailSpringDataAdapterTest
+
+Além disto, foi implementado um teste integrado da API de usuários que está disponível na classe:
 - UserControllerIntegrationTest
+
